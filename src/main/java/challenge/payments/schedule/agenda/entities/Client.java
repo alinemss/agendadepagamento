@@ -16,14 +16,14 @@ import javax.persistence.*;
 public class Client {
 
     @Id
+    @Column(name = "idt_client")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long userId;
+    private Long id;
 
     @Column
     private String userName;
 
-    @Column
-    @JoinColumn(table = "Plano",columnDefinition = "idt_plan")
-    private int idt_plan;
+    @OneToOne
+    private Plano plano;
 
 }

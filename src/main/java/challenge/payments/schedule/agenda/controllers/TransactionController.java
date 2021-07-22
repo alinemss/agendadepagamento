@@ -1,8 +1,7 @@
 package challenge.payments.schedule.agenda.controllers;
 
-import challenge.payments.schedule.agenda.entities.Installment;
-import challenge.payments.schedule.agenda.entities.Transaction;
-import challenge.payments.schedule.agenda.services.InstallmentsService;
+import challenge.payments.schedule.agenda.entities.Details.ReceivablesDetails;
+import challenge.payments.schedule.agenda.entities.Details.TransactionDetails;
 import challenge.payments.schedule.agenda.services.TransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -18,9 +17,6 @@ public class TransactionController {
     @Autowired
     private TransactionService transactionService;
 
-    @Autowired
-    private InstallmentsService installmentsService;
-
     @GetMapping("/")
     private String string(){
         return "Hello World";
@@ -28,11 +24,9 @@ public class TransactionController {
 
     @PostMapping("/")
     @ResponseStatus(HttpStatus.ACCEPTED)
-    public List<Installment> postInstalments (@RequestBody Transaction transaction){
+    public List<ReceivablesDetails> postInstalments (@RequestBody TransactionDetails Transaction){
 
-       transactionService.createTransaction(transaction);
-
-       return installmentsService.installmentList(transaction);
+       return transactionService.handleReceivable(Transaction);
 
 }
 

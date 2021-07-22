@@ -1,40 +1,36 @@
 package challenge.payments.schedule.agenda.entities;
 
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.CreationTimestamp;
 
 import javax.persistence.*;
-import java.time.LocalDate;
-
+import java.time.LocalDateTime;
 
 @Data
 @Entity
+@SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name="transaction")
+@Table(name= "transaction")
 public class Transaction {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long idTransaction;
+  @Id
+  @GeneratedValue
+  private Long id;
 
-    @JoinColumn(table = "Clients", referencedColumnName = "userId")
-    @Column()
-    private Long userId;
+  @OneToOne
+  private Client client;
 
-    @Column()
-    private float amount;
+  private Double amount;
 
-    @Column()
-    private int installments;
+  private Long installment;
 
-    @Column()
-    private String typeTransaction;
-
-    @Column()
-    private LocalDate transactionDate = LocalDate.now();
+  @Column(updatable = false)
+  @CreationTimestamp
+  private LocalDateTime createdAt;
 
 }
-
-

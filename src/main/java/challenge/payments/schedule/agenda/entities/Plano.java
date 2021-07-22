@@ -1,34 +1,34 @@
 package challenge.payments.schedule.agenda.entities;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
+import org.hibernate.annotations.CreationTimestamp;
 import javax.persistence.*;
-
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
 @Entity
-@Table(name= "Planos")
+@Table(name= "plans")
 public class Plano {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int idt_plan;
+    @Column(name = "idt_plan")
+    private Long id;
 
-    @Column
-    @JoinColumn(table = "Transactions", columnDefinition = "typeTransaction")
-    private String typeTransaction;
+    private Long installments;
 
-    @Column
-    private float fee;
+    private BigDecimal fees;
 
-    @Column
-    @JoinColumn(table = "Transactions", columnDefinition = "installments")
-    private int installments;
+    private Integer modalities;
 
-    @Column
-    private int daysUntilPayment;
+    @Column(updatable = false)
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+
 
 }
