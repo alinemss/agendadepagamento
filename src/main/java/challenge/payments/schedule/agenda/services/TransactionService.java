@@ -3,32 +3,24 @@ package challenge.payments.schedule.agenda.services;
 import challenge.payments.schedule.agenda.entities.Client;
 import challenge.payments.schedule.agenda.entities.Details.ReceivablesDetails;
 import challenge.payments.schedule.agenda.entities.Details.TransactionDetails;
-import challenge.payments.schedule.agenda.entities.Plano;
 import challenge.payments.schedule.agenda.entities.Receivables;
 import challenge.payments.schedule.agenda.entities.Transaction;
 import challenge.payments.schedule.agenda.entities.builders.ReceivableDetailsBuilder;
 import challenge.payments.schedule.agenda.entities.builders.TransactionDetailsBuilder;
-import challenge.payments.schedule.agenda.repositories.ReceivableRepository;
 import challenge.payments.schedule.agenda.repositories.TransactionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
-import static java.lang.Math.round;
-
 
 @Service
 public class TransactionService {
 
     @Autowired
     private TransactionRepository transactionRepository;
-
-    @Autowired
-    private ReceivableRepository receivableRepository;
 
     @Autowired
     private ReceivableService receivableService;
@@ -48,55 +40,58 @@ public class TransactionService {
     public challenge.payments.schedule.agenda.entities.Transaction persist(TransactionDetails transactionDetails){
 
         var client = clientService.findById(transactionDetails.getClientId()).stream().collect(Collectors.toList()).get(0);
-
         var transaction = TransactionDetailsBuilder.toEntity(transactionDetails,client);
-        
-        return transactionRepository.save(transaction);
-        
-    }
 
+        return transactionRepository.save(transaction);
+    }
     //Chama a transação e retorna a agenda
     public List<ReceivablesDetails> handleReceivable(TransactionDetails transactionDetails) {
         var transaction = this.persist(transactionDetails);
         var client = transaction.getClient();
-        var plan = client.getPlano();
         var totalInstalmments = transaction.getInstallment();
         var startAt = totalInstalmments == 0 ? 0 : 1;
         var endAt = Math.toIntExact(transactionDetails.getInstallments()) + 1;
 
         return IntStream.range(startAt,endAt)
-                .mapToObj(installment -> this.installmentToSchedule(installment,transaction,plan,client))
+                .mapToObj(installment -> this.installmentToSchedule(installment,transaction,client))
                 .map(ReceivableDetailsBuilder::fromEntity)
                 .collect(Collectors.toList());
-
-
-
     }
 
-    //Gera os Recibos e Agenda --> Builda os parcelamentos
-    public Receivables installmentToSchedule(int installment, Transaction transaction, Plano plano, Client client) {
+    public Receivables installmentToSchedule(int installment, Transaction transaction, Client client) {
 
+        var fee = client.getPlano()
+                .stream()
+                .filter(plan -> plan.getInstallments()==transaction.getInstallment())
+                .findFirst().get().getFees();
+        ;
         var totalInstallments = Math.toIntExact(transaction.getInstallment());
-        var fee = plano.getFees().doubleValue();
-        var modality = 30;
+
+        var modality = client.getPlano()
+                .stream()
+                .filter(plan -> plan.getInstallments()==installment)
+                .findFirst().get().getModalities();
+
         var amount = transaction.getAmount()/transaction.getInstallment();
         //Corrigir regra de dias add
 
         var expectedPaymentAt = transaction.getCreatedAt().toLocalDate();
 
-        var totalNetAmount = BigDecimal.valueOf(amount).multiply(BigDecimal.valueOf(1 - fee/100));
+        var totalNetAmount = (amount)*(1 - fee/100);
 
-        var netAmount = round(totalNetAmount.divide(BigDecimal.valueOf(totalInstallments)).doubleValue() * 100.0)/100.0;
+        var netAmount = Math.round((totalNetAmount)*100.0)/100.0;
 
-        return Receivables.builder()
+        var receivable = Receivables.builder()
                 .amount(amount)
                 .installments((long) installment)
-                .expectedPaymentDate(expectedPaymentAt.plusDays((long) modality * installment))
+                .expectedPaymentDate(expectedPaymentAt.plusDays((long) modality))
                 .fee(fee)
                 .netAmount(netAmount)
                 .client(client)
                 .transaction(transaction)
                 .build();
+
+        return receivableService.insert(receivable);
 
     }
 

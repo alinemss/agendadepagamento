@@ -4,8 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+
 import javax.persistence.*;
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @AllArgsConstructor
@@ -22,7 +22,7 @@ public class Plano {
 
     private Long installments;
 
-    private BigDecimal fees;
+    private Double fees;
 
     private Integer modalities;
 

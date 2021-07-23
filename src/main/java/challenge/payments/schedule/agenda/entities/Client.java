@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Entity
 @Data
@@ -23,7 +24,7 @@ public class Client {
     @Column
     private String userName;
 
-    @OneToOne
-    private Plano plano;
+    @OneToMany
+    private List<Plano> plano;
 
 }
