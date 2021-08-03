@@ -1,7 +1,7 @@
 package challenge.payments.schedule.agenda.entities.builders;
 
 import challenge.payments.schedule.agenda.entities.Client;
-import challenge.payments.schedule.agenda.entities.Details.TransactionDetails;
+import challenge.payments.schedule.agenda.entities.details.TransactionDetails;
 import challenge.payments.schedule.agenda.entities.Transaction;
 
 public class TransactionDetailsBuilder {

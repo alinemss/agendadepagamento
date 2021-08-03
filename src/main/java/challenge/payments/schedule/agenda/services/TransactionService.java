@@ -1,18 +1,19 @@
 package challenge.payments.schedule.agenda.services;
 
 import challenge.payments.schedule.agenda.entities.Client;
-import challenge.payments.schedule.agenda.entities.Details.ReceivablesDetails;
-import challenge.payments.schedule.agenda.entities.Details.TransactionDetails;
+import challenge.payments.schedule.agenda.entities.details.ReceivablesDetails;
+import challenge.payments.schedule.agenda.entities.details.TransactionDetails;
 import challenge.payments.schedule.agenda.entities.Receivables;
 import challenge.payments.schedule.agenda.entities.Transaction;
 import challenge.payments.schedule.agenda.entities.builders.ReceivableDetailsBuilder;
 import challenge.payments.schedule.agenda.entities.builders.TransactionDetailsBuilder;
+import challenge.payments.schedule.agenda.exceptions.ApplicationException;
+import challenge.payments.schedule.agenda.messages.Messages;
 import challenge.payments.schedule.agenda.repositories.TransactionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -31,20 +32,23 @@ public class TransactionService {
     @Autowired
     private PlanService planService;
 
-    //Não esta em uso
-    private Optional<challenge.payments.schedule.agenda.entities.Transaction> findTransactionById(Long id){
-        return transactionRepository.findById(id);
-    }
 
-    //Funcionando \\o//
-    public challenge.payments.schedule.agenda.entities.Transaction persist(TransactionDetails transactionDetails){
+    public challenge.payments.schedule.agenda.entities.Transaction persist(TransactionDetails transactionDetails) {
 
-        var client = clientService.findById(transactionDetails.getClientId()).stream().collect(Collectors.toList()).get(0);
-        var transaction = TransactionDetailsBuilder.toEntity(transactionDetails,client);
+        //Inserir tratativa de erro
+        var client = this.clientService.findById(transactionDetails.getClientId()).orElseThrow(
+                () -> new ApplicationException(
+                        String.format(Messages.ENTITY_NOT_FOUND, clientService.getEntityName())
+                )
+        );
+        var transaction = TransactionDetailsBuilder.toEntity(transactionDetails, client);
+
 
         return transactionRepository.save(transaction);
+
     }
-    //Chama a transação e retorna a agenda
+
+
     public List<ReceivablesDetails> handleReceivable(TransactionDetails transactionDetails) {
         var transaction = this.persist(transactionDetails);
         var client = transaction.getClient();
@@ -60,20 +64,22 @@ public class TransactionService {
 
     public Receivables installmentToSchedule(int installment, Transaction transaction, Client client) {
 
-        var fee = client.getPlano()
+        //inserir tratativa de erro aqui
+
+       var fee = client.getPlano()
                 .stream()
                 .filter(plan -> plan.getInstallments()==transaction.getInstallment())
                 .findFirst().get().getFees();
-        ;
+
         var totalInstallments = Math.toIntExact(transaction.getInstallment());
 
+        //inserir tratativa de erro aqui
         var modality = client.getPlano()
                 .stream()
                 .filter(plan -> plan.getInstallments()==installment)
                 .findFirst().get().getModalities();
 
-        var amount = transaction.getAmount()/transaction.getInstallment();
-        //Corrigir regra de dias add
+        Double amount = Math.round(transaction.getAmount()/transaction.getInstallment()*100d)/100.0;
 
         var expectedPaymentAt = transaction.getCreatedAt().toLocalDate();
 
@@ -84,6 +90,7 @@ public class TransactionService {
         var receivable = Receivables.builder()
                 .amount(amount)
                 .installments((long) installment)
+                .currentInstallments((long) installment)
                 .expectedPaymentDate(expectedPaymentAt.plusDays((long) modality))
                 .fee(fee)
                 .netAmount(netAmount)

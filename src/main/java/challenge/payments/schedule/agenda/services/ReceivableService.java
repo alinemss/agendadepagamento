@@ -11,6 +11,7 @@ public class ReceivableService {
     @Autowired
     private ReceivableRepository receivableRepository;
 
+    //inserir tratativa de erro aqui
     public Receivables insert(Receivables receivable) {
         return receivableRepository.save(receivable);
     }

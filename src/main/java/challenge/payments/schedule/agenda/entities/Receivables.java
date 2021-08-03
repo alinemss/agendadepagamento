@@ -49,7 +49,7 @@ public class Receivables {
     @CreationTimestamp
     private LocalDateTime createdAt;
 
-    @Column(insertable = false)
+    @Column()
     private LocalDate expectedPaymentDate;
 
 }

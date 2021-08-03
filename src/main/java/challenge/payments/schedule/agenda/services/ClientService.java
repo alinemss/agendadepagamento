@@ -18,5 +18,8 @@ public class ClientService {
         return clientRepository.findById(id);
 
     }
+    public String getEntityName() {
+        return Client.class.getSimpleName();
+    }
 
 }

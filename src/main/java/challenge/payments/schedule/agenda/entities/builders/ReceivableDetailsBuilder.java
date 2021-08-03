@@ -1,6 +1,6 @@
 package challenge.payments.schedule.agenda.entities.builders;
 
-import challenge.payments.schedule.agenda.entities.Details.ReceivablesDetails;
+import challenge.payments.schedule.agenda.entities.details.ReceivablesDetails;
 import challenge.payments.schedule.agenda.entities.Receivables;
 
 public class ReceivableDetailsBuilder {

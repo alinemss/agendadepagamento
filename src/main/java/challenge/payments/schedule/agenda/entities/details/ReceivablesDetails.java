@@ -1,4 +1,4 @@
-package challenge.payments.schedule.agenda.entities.Details;
+package challenge.payments.schedule.agenda.entities.details;
 
 import lombok.Builder;
 import lombok.Data;
