@@ -21,7 +21,7 @@ public class TransactionController {
 
     @GetMapping("/")
     private String string(){
-        return "Hello World";
+        return "Schedule Payments ta on";
     }
 
     @PostMapping("/")
